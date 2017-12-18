@@ -65,6 +65,15 @@ public class RTTnode {
     public String toXMI(){
         return this.toXMI("", "");
     }
+    
+    public static StringBuilder tXMIP1(StringBuilder str, String outcoming){
+        if(outcoming.isEmpty() == false) {
+            str.append(" outgoing=\"");
+            str.append(outcoming);
+            str.append("\"");
+        }
+        return str;
+    }
 
     public String toXMI(String outcoming, String incoming){
         StringBuilder str = new StringBuilder();
@@ -88,12 +97,9 @@ public class RTTnode {
         str.append("\" name=\"");
         str.append(this.name);
         str.append("\"");
-
-        if(outcoming.isEmpty() == false) {
-            str.append(" outgoing=\"");
-            str.append(outcoming);
-            str.append("\"");
-        }
+        
+        str = tXMIP1(str, outcoming);
+        
 
         if(incoming.isEmpty() == false) {
             str.append(" incoming=\"");

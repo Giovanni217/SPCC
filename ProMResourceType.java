@@ -22,6 +22,13 @@ public class ProMResourceType implements ResourceType {
 	private String name;
 	private final static String DEFAULT_ICON = "resourcetype_model_30x35.png";
 
+        public Image pMRTP1(Image icon){
+            if (type.isAnnotationPresent(Icon.class)) {
+				icon = ImageLoader.load(type.getAnnotation(Icon.class).icon());
+			}
+            return icon;
+        }
+        
 	public ProMResourceType(Class<?> aType) {
 		type = aType;
 
@@ -88,10 +95,8 @@ public class ProMResourceType implements ResourceType {
 				};
 				name = type.getSimpleName();
 			}
-
-			if (type.isAnnotationPresent(Icon.class)) {
-				icon = ImageLoader.load(type.getAnnotation(Icon.class).icon());
-			}
+                        icon = pMRTP1(icon);
+			
 
 			/*
 			 * HV: No icon found yet. Use default.

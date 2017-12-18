@@ -78,6 +78,22 @@ public class ProMActionManager implements ActionManager<ProMAction>, PluginManag
 
 		return types;
 	}
+        
+        public static boolean gAP1(List<ResourceType> requiredOutput, Collection<ResourceType> outputs, boolean flag){
+            for (ResourceType required : requiredOutput) {
+				boolean found = false;
+				for (ResourceType output : outputs) {
+					found |= required.isAssignableFrom(output);
+					if (found) {
+						break;
+					}
+				}
+				if (!found) {
+					flag=false;
+				}
+			}
+            return flag;
+        }
 
 	public List<ProMAction> getActions(List<ResourceType> parameters, List<ResourceType> requiredOutput, ActionType type) {
 
@@ -94,18 +110,8 @@ public class ProMActionManager implements ActionManager<ProMAction>, PluginManag
 
 			// Check if all given output types are present in the plugin's output
 			Collection<ResourceType> outputs = getResourcesTypesFor(action.getOutput());
-			for (ResourceType required : requiredOutput) {
-				boolean found = false;
-				for (ResourceType output : outputs) {
-					found |= required.isAssignableFrom(output);
-					if (found) {
-						break;
-					}
-				}
-				if (!found) {
-					flag=false;
-				}
-			}
+                        flag = gAP1(requiredOutput, outputs, flag);
+			
 
 			// Check for enabledness using a pluginparamterbinding
 			int i = 0;

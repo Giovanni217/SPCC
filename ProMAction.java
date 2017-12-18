@@ -43,6 +43,45 @@ public class ProMAction implements Action, Comparable<ProMAction> {
 	private String help;
 	private String[] keywords;
 	private String[] catergories;
+        
+        public void pMAP1(int parameterNamesSize, PluginDescriptor plugin, int methodIndex, ProMResourceManager resourceManager, int resIndex){
+            for (int i = 0; i < parameterNamesSize; i++) {
+			Class<?> type = plugin.getParameterTypes(methodIndex).get(i);
+
+			String name = plugin.getParameterNames(methodIndex).get(i);
+
+			boolean isArray = type.isArray();
+			if (isArray) {
+				type = type.getComponentType();
+			}
+			ResourceType resType = resourceManager.getResourceTypeFor(type);
+
+			if (resType != null) {
+				inputs.add(new ProMParameter(name, i, resType, isArray));
+				isResource[i] = true;
+				resourceIndex[i] = resIndex++;
+			} else {
+				isResource[i] = false;
+				resourceIndex[i] = -1;
+			}
+		}
+        }
+        
+        public void pMAP2(int returnNamesSize, PluginDescriptor plugin, ProMResourceManager resourceManager){
+            for (int i = 0; i < returnNamesSize; i++) {
+			Class<?> type = plugin.getReturnTypes().get(i);
+			String name = plugin.getReturnNames().get(i);
+
+			boolean isArray = type.isArray();
+			if (type.isArray()) {
+				type = type.getComponentType();
+			}
+			ResourceType resType = resourceManager.getResourceTypeFor(type);
+			if (resType != null) {
+				outputs.add(new ProMParameter(name, i, resType, isArray));
+			}
+		}
+        }
 
 	public ProMAction(ProMResourceManager resourceManager, PluginManager pluginManager, final PluginDescriptor plugin,
 			final int methodIndex) {
@@ -104,42 +143,13 @@ public class ProMAction implements Action, Comparable<ProMAction> {
 		inputs = new ArrayList<Parameter>();
 		int resIndex = 0;
 		int parameterNamesSize = plugin.getParameterNames(methodIndex).size();
-		for (int i = 0; i < parameterNamesSize; i++) {
-			Class<?> type = plugin.getParameterTypes(methodIndex).get(i);
-
-			String name = plugin.getParameterNames(methodIndex).get(i);
-
-			boolean isArray = type.isArray();
-			if (isArray) {
-				type = type.getComponentType();
-			}
-			ResourceType resType = resourceManager.getResourceTypeFor(type);
-
-			if (resType != null) {
-				inputs.add(new ProMParameter(name, i, resType, isArray));
-				isResource[i] = true;
-				resourceIndex[i] = resIndex++;
-			} else {
-				isResource[i] = false;
-				resourceIndex[i] = -1;
-			}
-		}
+                pMAP1(parameterNamesSize, plugin, methodIndex, resourceManager, resIndex);
+		
 
 		outputs = new ArrayList<Parameter>();
 		int returnNamesSize = plugin.getReturnNames().size();
-		for (int i = 0; i < returnNamesSize; i++) {
-			Class<?> type = plugin.getReturnTypes().get(i);
-			String name = plugin.getReturnNames().get(i);
-
-			boolean isArray = type.isArray();
-			if (type.isArray()) {
-				type = type.getComponentType();
-			}
-			ResourceType resType = resourceManager.getResourceTypeFor(type);
-			if (resType != null) {
-				outputs.add(new ProMParameter(name, i, resType, isArray));
-			}
-		}
+                pMAP2(returnNamesSize, plugin, resourceManager);
+		
 
 	}
 

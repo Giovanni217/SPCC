@@ -101,6 +101,24 @@ public class CNParser {
             graph.addNode(name);
         }
     }
+    
+    private static String [] aEP1(String [] pieces, String src, String dest){
+        for(String piece: pieces)
+        {
+            String[] parts = piece.split("=");
+            if(parts.length < 2)
+                continue;
+
+            if(parts[0].equals("src"))
+                src = parts[1];
+            else if(parts[0].equals("dest"))
+                dest = parts[1];
+        }
+        String [] output = new String [2];
+        output[0] = src;
+        output[1] = dest;
+        return output;
+    }
 
     private void addEdge(Flex graph, String line){
         line = line.replace("<Edge ", "");
@@ -114,6 +132,10 @@ public class CNParser {
         String dest = "";
 
         String [] pieces = line.split(" ");
+        String [] srcDest = new String[2];
+        srcDest = aEP1(pieces, src, dest);
+        src = srcDest[0];
+        dest = srcDest[1];
         for(String piece: pieces)
         {
             String[] parts = piece.split("=");

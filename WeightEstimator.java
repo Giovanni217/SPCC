@@ -106,6 +106,18 @@ public class WeightEstimator
             return horizonReached;
         }
         
+        public void aTCP2_1(double power, boolean nonOverlappingPairs, IntOpenHashSet visitedFollowers, int task2, int task1){
+            if ((!nonOverlappingPairs) || (!visitedFollowers.contains(task2)))
+					{
+						visitedFollowers.add(task2);
+                                                
+						this.unnormDepMatrix[task1][task2] += power;
+						if (this.countMatrix != null) {
+							this.countMatrix[task1][task2] += 1.0D;
+						}
+					}
+        }
+        
         public void aTCP2(int i, double power, boolean horizonReached, int gap, IntArrayList trace, int traceSize, int task1, IntOpenHashSet visitedFollowers){
             for (int j = i + 1; (!horizonReached) && ((this.maxGap < 0) || (gap <= this.maxGap)) && (j < traceSize); j++)
 			{
@@ -115,15 +127,8 @@ public class WeightEstimator
 				if (!horizonReached)
 				{
 					boolean nonOverlappingPairs = (CLOSEST_OCCURRENCE_ONLY) || (this.estimationStrategy == 2);
-					if ((!nonOverlappingPairs) || (!visitedFollowers.contains(task2)))
-					{
-						visitedFollowers.add(task2);
-            
-						this.unnormDepMatrix[task1][task2] += power;
-						if (this.countMatrix != null) {
-							this.countMatrix[task1][task2] += 1.0D;
-						}
-					}
+					aTCP2_1(power, nonOverlappingPairs, visitedFollowers, task2, task1);
+                                        
 					power *= this.fallFactor;
 				}
 				gap++;

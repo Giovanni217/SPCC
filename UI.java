@@ -61,30 +61,8 @@ public class UI {
             return new File(cmd);
         }
 
-	public static void main(String[] args) throws Exception {
-
-		if (Boot.AUTO_UPDATE.equals("auto") || Boot.AUTO_UPDATE.equals("user") || !Boot.isLatestReleaseInstalled()) {
-			Boot.setReleaseInstalled("", "");
-			PMFrame frame = (PMFrame) Boot.boot(PMFrame.class);
-			frame.setIconImage(ImageLoader.load("prom_icon_32x32.png"));
-			// Now select the release package
-			PMPackage releasePackage = frame.getController().selectPackage(Boot.RELEASE_PACKAGE);
-			if (releasePackage == null) {
-				Boot.boot(UI.class, UIPluginContext.class, args);
-				throw new Exception("Cannot find release package defined in ProM.ini file: " + Boot.RELEASE_PACKAGE
-						+ ". Continuing to load ProM.");
-			}
-
-			if (releasePackage.getStatus() == PMStatus.TOUNINSTALL) {
-
-				int option = JOptionPane.NO_OPTION;
-
-				if (Boot.AUTO_UPDATE.equals("auto") || Boot.AUTO_UPDATE.equals("user")) {
-					/*
-					 * HV: Check for packages to install or update.
-					 */
-					PMController pmController = frame.getController();
-					if (Boot.AUTO_UPDATE.equals("user")) {
+        public static int mP1(PMFrame frame, PMController pmController, int option){
+            if (Boot.AUTO_UPDATE.equals("user")) {
 						if (!pmController.getToInstallPackages().isEmpty()) {
 							if (!pmController.getToUpdatePackages().isEmpty()) {
 								option = JOptionPane.showConfirmDialog(frame,
@@ -103,6 +81,47 @@ public class UI {
 					} else { // auto
 						option = JOptionPane.YES_OPTION;
 					}
+            return option;
+        }
+        
+        public static void mP2(int option, String[] args){
+            if (option == JOptionPane.NO_OPTION) {
+					// Package is upToDate and installed.
+					// Do not show package manager and start ProM
+					Boot.setLatestReleaseInstalled();
+					Boot.boot(UI.class, UIPluginContext.class, args);
+				}
+        }
+        
+        public static void mP0(PMPackage releasePackage, String[] args){
+            if (releasePackage == null) {
+				Boot.boot(UI.class, UIPluginContext.class, args);
+				throw new Exception("Cannot find release package defined in ProM.ini file: " + Boot.RELEASE_PACKAGE
+						+ ". Continuing to load ProM.");
+			}
+        }
+        
+	public static void main(String[] args) throws Exception {
+
+		if (Boot.AUTO_UPDATE.equals("auto") || Boot.AUTO_UPDATE.equals("user") || !Boot.isLatestReleaseInstalled()) {
+			Boot.setReleaseInstalled("", "");
+			PMFrame frame = (PMFrame) Boot.boot(PMFrame.class);
+			frame.setIconImage(ImageLoader.load("prom_icon_32x32.png"));
+			// Now select the release package
+			PMPackage releasePackage = frame.getController().selectPackage(Boot.RELEASE_PACKAGE);
+                        mP0(releasePackage, args);
+			
+
+			if (releasePackage.getStatus() == PMStatus.TOUNINSTALL) {
+
+				int option = JOptionPane.NO_OPTION;
+				if (Boot.AUTO_UPDATE.equals("auto") || Boot.AUTO_UPDATE.equals("user")) {
+					/*
+					 * HV: Check for packages to install or update.
+					 */
+					PMController pmController = frame.getController();
+                                        mP1(frame, pmController, option);
+					
 					if (option == JOptionPane.YES_OPTION) {
 						// Start listening
 						UIPackageManagerListener listener = new UIPackageManagerListener(frame, args);
@@ -129,13 +148,9 @@ public class UI {
 
 					}
 				}
-
-				if (option == JOptionPane.NO_OPTION) {
-					// Package is upToDate and installed.
-					// Do not show package manager and start ProM
-					Boot.setLatestReleaseInstalled();
-					Boot.boot(UI.class, UIPluginContext.class, args);
-				}
+                                
+                                mP2(option, args);
+				
 
 			} else {
 

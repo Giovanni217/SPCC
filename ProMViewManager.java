@@ -42,6 +42,12 @@ public class ProMViewManager extends UpdateSignaller implements ViewManager {
 			registerResourceType(type);
 		}
 	}
+        
+        public void rRTP1(Set<Pair<Integer, PluginParameterBinding>> visualizers, ResourceType type){
+            for (Pair<Integer, PluginParameterBinding> binding : visualizers) {
+			viewClasses.get(type.getTypeClass()).add(new ProMViewType(this, type, binding));
+		}
+        }
 
 	public void registerResourceType(final ResourceType type) {
 		viewClasses.put(type.getTypeClass(), new ArrayList<ViewType>(0));
@@ -49,9 +55,8 @@ public class ProMViewManager extends UpdateSignaller implements ViewManager {
 				JComponent.class, UIPluginContext.class, true, false, true, type.getTypeClass());
 		Set<Pair<Integer, PluginParameterBinding>> cancellableVisualizers = context.getPluginManager().find(Visualizer.class,
 				JComponent.class, UIPluginContext.class, true, false, true, type.getTypeClass(), ProMCanceller.class);
-		for (Pair<Integer, PluginParameterBinding> binding : visualizers) {
-			viewClasses.get(type.getTypeClass()).add(new ProMViewType(this, type, binding));
-		}
+		rRTP1(visualizers, type);
+                
 		for (Pair<Integer, PluginParameterBinding> binding : cancellableVisualizers) {
 			viewClasses.get(type.getTypeClass()).add(new ProMViewType(this, type, binding));
 		}
