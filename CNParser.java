@@ -1,14 +1,10 @@
-package org.processmining.plugins.cnet2ad;
+package com.rtt.cnmining;
 
-
-import org.processmining.models.flexiblemodel.Flex;
-import org.processmining.models.flexiblemodel.FlexEdge;
-import org.processmining.models.flexiblemodel.FlexFactory;
-import org.processmining.models.flexiblemodel.FlexNode;
-import org.processmining.models.flexiblemodel.SetFlex;
+import org.processmining.models.flexiblemodel.*;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.util.Set;
 
 /*
     Questa classe esegue una conversione dell'output del plugin di
@@ -31,8 +27,7 @@ public class CNParser {
         this.dictionary = new CustomDictionary<String, String>();
         Flex graph = FlexFactory.newFlex("ExtendedCausalNet");
 
-        try {
-        	BufferedReader br = new BufferedReader(new FileReader(this.filename));
+        try(BufferedReader br = new BufferedReader(new FileReader(this.filename))) {
             String line = br.readLine();
 
             while (line != null) {
@@ -50,12 +45,12 @@ public class CNParser {
             System.out.println(e.toString());
             return null;
         }
-        
+
         this.computeBindings(graph);
 
         return graph;
     }
-    
+
     private void computeBindings(Flex graph){
         for(FlexNode node:graph.getNodes()){
             SetFlex input = new SetFlex();

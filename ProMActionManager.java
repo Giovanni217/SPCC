@@ -55,9 +55,9 @@ public class ProMActionManager implements ActionManager<ProMAction>, PluginManag
 
 	private static ProMActionManager instance = null;
 
-	public static ProMActionManager initialize(UIContext context) {
+	public static ProMActionManager initialize(UIContext contesto) {
 		if (instance == null) {
-			instance = new ProMActionManager(context);
+			instance = new ProMActionManager(contesto);
 		}
 		return instance;
 	}
@@ -83,6 +83,7 @@ public class ProMActionManager implements ActionManager<ProMAction>, PluginManag
 
 		List<ProMAction> enabledActions = new ArrayList<ProMAction>();
                 boolean flag=true;
+                Class<?>[] types = new Class<?>[parameters.size()];
                 while (flag==true){
                     for (ProMAction action : actions) {
 			// Check for type match
@@ -107,7 +108,6 @@ public class ProMActionManager implements ActionManager<ProMAction>, PluginManag
 			}
 
 			// Check for enabledness using a pluginparamterbinding
-			Class<?>[] types = new Class<?>[parameters.size()];
 			int i = 0;
 			for (ResourceType r : parameters) {
 				types[i++] = r.getTypeClass();
@@ -132,7 +132,7 @@ public class ProMActionManager implements ActionManager<ProMAction>, PluginManag
 		return new ArrayList<ProMAction>(actions);
 	}
 
-	private boolean checkPlugin(UIContext context, PluginDescriptor plugin, int methodIndex) {
+	private boolean checkPlugin(UIContext contesto, PluginDescriptor plugin, int methodIndex) {
 		if (plugin.getAnnotation(Visualizer.class) != null) {
 			return false;
 		}

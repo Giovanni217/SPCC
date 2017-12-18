@@ -68,12 +68,13 @@ public class AllInclassMethodTests {
 			
 			File f = new File("." + File.separator + Boot.LIB_FOLDER);
 			String libPath = f.getCanonicalPath();
-	
+                        boolean flag=false;
 			for (URL url : defaultURLs) {
 				if (Boot.VERBOSE == Level.ALL) {
 					System.out.println("Processing url: " + url);
 				}
-				if (!(new File(url.toURI()).getCanonicalPath().startsWith(libPath))) {
+                                flag=metodoManutenzione(url,libPath);
+				if (!flag) {
 					if (Boot.VERBOSE == Level.ALL) {
 						System.out.println("Scanning for tests: " + url);
 					}
@@ -92,6 +93,19 @@ public class AllInclassMethodTests {
 			System.err.println("Could not read "+lookUpDir+"\n"+e);
 		}
 	}
+        
+        private boolean metodoManutenzione(URL url,String libPath){
+            boolean flag=false;
+            try {
+                flag=new File(url.toURI()).getCanonicalPath().startsWith(libPath);
+            }
+            catch (URISyntaxException e) {
+            
+            } catch (IOException e) {
+
+            }
+            return flag;
+        }
 	
 	private void register(URL url) {
 		if (url.getProtocol().equals(PluginManager.FILE_PROTOCOL)) {

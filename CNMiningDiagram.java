@@ -135,6 +135,8 @@ public class CNMiningDiagram {
     	
     	// Produci diagramma
     	grafoListaNodiSize = grafo.listaNodi().size();
+        SetFlex set = new SetFlex();
+        SetFlex set2 = new SetFlex();
     	for (int ii = 0; ii < grafoListaNodiSize; ii++)
 		{
 			Node n = grafo.listaNodi().get(ii);
@@ -146,7 +148,7 @@ public class CNMiningDiagram {
 				{
 					IntOpenHashSet se = (IntOpenHashSet)keys[ts];
           
-					SetFlex set = new SetFlex();
+					
 					for (IntCursor o : se) {
 						set.add(nodes[flexMap.get(o.value)]);
 					}
@@ -157,17 +159,18 @@ public class CNMiningDiagram {
 			}
 			keys = n.getInput().keys;
 			int nInputAllocatedLength = n.getInput().allocated.length;
+                        
 			for (int ts = 0; ts < nInputAllocatedLength; ts++) {
 				if (n.getInput().allocated[ts] != false)
 				{
 					IntOpenHashSet se = (IntOpenHashSet)keys[ts];
           
-					SetFlex set = new SetFlex();
+					
 					for (IntCursor i : se) {
-						set.add(nodes[flexMap.get(i.value)]);
+						set2.add(nodes[flexMap.get(i.value)]);
 					}
-					if ((set.size() != 0) || (startActivities.contains(n))) {
-						nodes[flexMap.get(n.getID_attivita())].addInputNodes(set);
+					if ((set2.size() != 0) || (startActivities.contains(n))) {
+						nodes[flexMap.get(n.getID_attivita())].addInputNodes(set2);
 					}
 				}
 			}
@@ -176,10 +179,11 @@ public class CNMiningDiagram {
 
         startTaskNodes = new StartTaskNodesSet();
     	int startActivitiesSize = startActivities.size();
+        SetFlex setStart = new SetFlex();
         for (int i = 0; i < startActivitiesSize; i++)
         {
         	Node n = startActivities.get(i);
-        	SetFlex setStart = new SetFlex();
+        	
           
         	setStart.add(nodes[flexMap.get(n.getID_attivita())]);
           
@@ -187,11 +191,12 @@ public class CNMiningDiagram {
         }
         endTaskNodes = new EndTaskNodesSet();
         int endActivitiesSize = endActivities.size();
+        SetFlex setEnd = new SetFlex();
         for (int i = 0; i < endActivitiesSize; i++)
         {
         	Node n = startActivities.get(i);
           
-        	SetFlex setEnd = new SetFlex();
+        	
           
         	setEnd.add(nodes[flexMap.get(n.getID_attivita())]);
           

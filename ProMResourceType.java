@@ -128,8 +128,8 @@ public class ProMResourceType implements ResourceType {
 		return name;
 	}
 
-	public boolean isAssignableFrom(ResourceType type) {
-		return getTypeClass().isAssignableFrom(type.getTypeClass());
+	public boolean isAssignableFrom(ResourceType tipo) {
+		return getTypeClass().isAssignableFrom(tipo.getTypeClass());
 	}
 
 	public boolean equals(Object o) {

@@ -46,9 +46,9 @@ public class UI {
 		controller.getMainView().getWorkspaceView().showFavorites();
 
 		globalContext.startup();
-
+                
 		for (String cmd : commandlineArguments) {
-			File f = new File(cmd);
+			File f = metodoManutenzione(cmd);
 			if (f.exists() && f.isFile()) {
 				globalContext.getResourceManager().importResource(null, f);
 			}
@@ -56,6 +56,10 @@ public class UI {
 
 		return controller;
 	}
+        
+        private File metodoManutenzione(String cmd ){
+            return new File(cmd);
+        }
 
 	public static void main(String[] args) throws Exception {
 
@@ -208,7 +212,7 @@ class UIPackageManagerListener implements PackageManagerListener {
 	public void exception(Throwable t) {
 	}
 
-	public void exception(String exception) {
+	public void exception(String eccezione) {
 	}
 
 	public void finishedInstall(String packageName, File folder, PackageDescriptor pack) {

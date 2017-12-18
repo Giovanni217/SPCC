@@ -98,6 +98,7 @@ public class WeightEstimator
 		IntOpenHashSet visitedTasks = new IntOpenHashSet();
 
 		int traceSize = trace.size();
+                IntOpenHashSet visitedFollowers = new IntOpenHashSet();
 		for (int i = 0; i < traceSize; i++)
 		{
 			int gap = 0;
@@ -116,7 +117,6 @@ public class WeightEstimator
 				}
 			}
 
-			IntOpenHashSet visitedFollowers = new IntOpenHashSet();
 			for (int j = i + 1; (!horizonReached) && ((this.maxGap < 0) || (gap <= this.maxGap)) && (j < traceSize); j++)
 			{
 				int task2 = trace.get(j);

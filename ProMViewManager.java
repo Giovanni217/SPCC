@@ -74,9 +74,9 @@ public class ProMViewManager extends UpdateSignaller implements ViewManager {
 		});
 	}
 
-	public static ProMViewManager initialize(UIContext context) {
+	public static ProMViewManager initialize(UIContext contesto) {
 		if (instance == null) {
-			instance = new ProMViewManager(context);
+			instance = new ProMViewManager(contesto);
 		}
 		return instance;
 	}

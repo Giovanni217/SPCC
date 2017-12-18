@@ -123,19 +123,20 @@ public class ScriptExecutor {
 		Set<Signature> foundSignatures = new HashSet<Signature>();
 		String nl = System.getProperty("line.separator");
 		int pluginIndex = 0;
-
+                // method signatures of this plugin
+		Set<Signature> thisPluginSignatures = new HashSet<Signature>();
 		PluginDescriptor[] plugins = context.getPluginManager().getAllPlugins();
+                StringBuffer init = new StringBuffer();
+		Interpreter pluginInterpreter = new Interpreter();
 		for (PluginDescriptor plugin : plugins)
 		{
 			if (Boot.VERBOSE == Level.ALL) System.out.println("checking "+plugin.getName());
 
-			// method signatures of this plugin
-			Set<Signature> thisPluginSignatures = new HashSet<Signature>();
+			
 			
 			try {
 				
-				StringBuffer init = new StringBuffer();
-				Interpreter pluginInterpreter = new Interpreter();
+				
 				pluginInterpreter.set("__main_context", context);
 				
 				// the right context type is checked at start by the
