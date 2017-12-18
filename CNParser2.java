@@ -136,17 +136,7 @@ public class CNParser {
         srcDest = aEP1(pieces, src, dest);
         src = srcDest[0];
         dest = srcDest[1];
-        for(String piece: pieces)
-        {
-            String[] parts = piece.split("=");
-            if(parts.length < 2)
-                continue;
-
-            if(parts[0].equals("src"))
-                src = parts[1];
-            else if(parts[0].equals("dest"))
-                dest = parts[1];
-        }
+        
 
         if(src.isEmpty() == false && dest.isEmpty() == false)
         {

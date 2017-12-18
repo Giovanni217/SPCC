@@ -4,6 +4,8 @@ import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -101,6 +103,38 @@ public class UI {
 			}
         }
         
+        public static void mP3(int option, PMFrame frame, String[] args, PMController pmController){
+            if (option == JOptionPane.YES_OPTION) {
+						// Start listening
+						UIPackageManagerListener listener = new UIPackageManagerListener(frame, args);
+						PackageManager.getInstance().addListener(listener);
+
+						// Show the package manager
+						frame.setVisible(true);
+						Collection<PMPackage> toUpdate = new ArrayList<PMPackage>();
+						toUpdate.addAll(pmController.getToInstallPackages());
+						toUpdate.addAll(pmController.getToUpdatePackages());
+
+						frame.getController().update(toUpdate, frame.getController().getMainView().getWorkspaceView());
+
+						// ProM will be started as soon as the package manager finishes.
+
+						synchronized (listener) {
+							boolean completed;
+							completed=listener.isDone();
+							while (!completed) {
+                                                            try {
+                                                                listener.wait();
+                                                            } catch (InterruptedException ex) {
+                                                                Logger.getLogger(UI.class.getName()).log(Level.SEVERE, null, ex);
+                                                            }
+								completed=listener.isDone();
+							}
+						}
+
+					}
+        }
+        
 	public static void main(String[] args) throws Exception {
 
 		if (Boot.AUTO_UPDATE.equals("auto") || Boot.AUTO_UPDATE.equals("user") || !Boot.isLatestReleaseInstalled()) {
@@ -121,32 +155,10 @@ public class UI {
 					 */
 					PMController pmController = frame.getController();
                                         mP1(frame, pmController, option);
+                                        
+                                        mP3(option, frame, args, pmController);
 					
-					if (option == JOptionPane.YES_OPTION) {
-						// Start listening
-						UIPackageManagerListener listener = new UIPackageManagerListener(frame, args);
-						PackageManager.getInstance().addListener(listener);
-
-						// Show the package manager
-						frame.setVisible(true);
-						Collection<PMPackage> toUpdate = new ArrayList<PMPackage>();
-						toUpdate.addAll(pmController.getToInstallPackages());
-						toUpdate.addAll(pmController.getToUpdatePackages());
-
-						frame.getController().update(toUpdate, frame.getController().getMainView().getWorkspaceView());
-
-						// ProM will be started as soon as the package manager finishes.
-
-						synchronized (listener) {
-							boolean completed;
-							completed=listener.isDone();
-							while (!completed) {
-								listener.wait();
-								completed=listener.isDone();
-							}
-						}
-
-					}
+					
 				}
                                 
                                 mP2(option, args);
