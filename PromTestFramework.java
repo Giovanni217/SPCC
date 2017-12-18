@@ -38,6 +38,15 @@ public class PromTestFramework {
 
 	@Plugin(name = "ProMTest", parameterLabels = {}, returnLabels = {}, returnTypes = {}, userAccessible = false)
 	@Bootable
+        
+        public List<PromTestException.ResultMismatch> mP1(String result, String expected, List<PromTestException.ResultMismatch> failedTest, Method test){
+            if (!result.equals(expected)) {
+					// test failed, store for reporting
+					failedTest.add(
+						new PromTestException.ResultMismatch(test, expected, result));
+				}
+            return failedTest;
+        }
 	public Object main(CommandLineArgumentList commandlineArguments) throws Throwable {
 		System.out.println("Entering ProM Test Framework");
 		
@@ -75,11 +84,8 @@ public class PromTestFramework {
 					expected = readFile(testFileRoot+"/"+test.getAnnotation(TestMethod.class).filename());
 				}
 				// compare result and expected
-				if (!result.equals(expected)) {
-					// test failed, store for reporting
-					failedTest.add(
-						new PromTestException.ResultMismatch(test, expected, result));
-				}
+                                failedTest = mP1(result, expected, failedTest, test);
+				
 			} catch (Throwable e) {
 				// test crashed, store exception for reporting
 				errorTest.add(
@@ -263,6 +269,15 @@ public class PromTestFramework {
 	
 
 	private final List<Method> testMethods = new LinkedList<Method>();
+        
+        private void lCP1(Class<?> pluginClass){
+            for (Method method : pluginClass.getMethods()) {
+				
+				if (method.isAnnotationPresent(TestMethod.class) && isGoodTest(method)) {
+					testMethods.add(method);
+				}
+			}
+        }
 	
 	/**
 	 * Returns the name of the class, if it is annotated, or if any of its
@@ -289,13 +304,8 @@ public class PromTestFramework {
 				PluginDescriptorImpl pl = new PluginDescriptorImpl(pluginClass, pluginContextType);
 				addPlugin(pl);
 			}*/
-
-			for (Method method : pluginClass.getMethods()) {
-				
-				if (method.isAnnotationPresent(TestMethod.class) && isGoodTest(method)) {
-					testMethods.add(method);
-				}
-			}
+                        lCP1(pluginClass);
+			
 		} catch (Throwable t) {
 			// fireError(url, t, className);
 			if (Boot.VERBOSE != Level.NONE) {
@@ -307,47 +317,71 @@ public class PromTestFramework {
 		}
 		return isAnnotated ? className : null;
 	}
-	
-	private boolean isGoodTest(Method method) {
-		
-		assert(method.isAnnotationPresent(TestMethod.class));
-		
-		// check annotations
-		if (!testResultFromFile(method) && !testResultFromOutputAnnotation(method)) {
+        
+        private boolean iGTP1(Method method){
+            if (!testResultFromFile(method) && !testResultFromOutputAnnotation(method)) {
 			if (Boot.VERBOSE != Level.NONE) {
 				System.err.println("Test " + method.toString() + " could not be loaded. "
 						+ "No expected test result specified.");
 			}
 			return false;
 		}
-
-		// check return type: must be String
-		if ((method.getModifiers() & Modifier.STATIC) == 0) {
+            return true;
+        }
+        
+        private boolean iGTP2(Method method){
+            if ((method.getModifiers() & Modifier.STATIC) == 0) {
 			if (Boot.VERBOSE != Level.NONE) {
 				System.err.println("Test " + method.toString() + " could not be loaded. "
 						+ "Test must be static.");
 			}
 			return false;
 		}
-
-		// check return type: must be String
-		if (!method.getReturnType().equals(String.class)) {
+            return true;
+        }
+        
+        private boolean iGTP3(Method method){
+            if (!method.getReturnType().equals(String.class)) {
 			if (Boot.VERBOSE != Level.NONE) {
 				System.err.println("Test " + method.toString() + " could not be loaded. "
 						+ "Return result must be java.lang.String");
 			}
 			return false;
 		}
-
-		// check parameter types: must be empty
-		Class<?>[] pars = method.getParameterTypes();
-		if (pars != null && pars.length > 0) {
+            return true;
+        }
+        
+        private boolean iGTP4(Class<?>[] pars, Method method){
+           if (pars != null && pars.length > 0) {
 			if (Boot.VERBOSE != Level.NONE) {
 				System.err.println("Test " + method.toString() + " could not be loaded. "
 						+ "A test must not take any parameters.");
 			}
 			return false;			
 		}
+           return true;
+        }
+	
+	private boolean isGoodTest(Method method) {
+		
+		assert(method.isAnnotationPresent(TestMethod.class));
+		
+		// check annotations
+                if(!iGTP1(method)) return false;
+		
+
+		// check return type: must be String
+                if(!iGTP2(method)) return false;
+		
+
+		// check return type: must be String
+                if(!iGTP3(method)) return false;
+		
+
+		// check parameter types: must be empty
+		Class<?>[] pars = method.getParameterTypes();
+                if(!iGTP4(pars, method)) return false;
+		
 		return true;
 	}
 

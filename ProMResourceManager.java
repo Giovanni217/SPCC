@@ -90,13 +90,16 @@ public class ProMResourceManager extends UpdateSignaller implements ResourceMana
     private final Preferences preferences;
 
     private ConnectionManager connectionManager;
-
-    private ProMResourceManager(UIContext context) {
-
-        this.context = context;
+    private void pMRMP1(UIContext context){
         for (Class<?> type : context.getPluginManager().getKnownObjectTypes()) {
             addType(type);
         }
+    }
+    private ProMResourceManager(UIContext context) {
+
+        this.context = context;
+        pMRMP1(context);
+        
         for (Class<?> type : context.getPluginManager().getKnownClassesAnnotatedWith(ConnectionAnnotation.class)) {
             addType(type);
         }
@@ -177,26 +180,7 @@ public class ProMResourceManager extends UpdateSignaller implements ResourceMana
         return new File(name);
     }
     
-    public boolean exportResource(Resource resource) throws IOException {
-        assert (resource instanceof ProMResource<?>);
-
-        String lastChosenExportPlugin = preferences.get(FAVORITEEXPORT + resource.getType().getTypeName(), "");
-        if (lastChosenExportPlugin.isEmpty()) {
-            // HV: No favorite set yet by user. Use reasonable default values for known types.
-            lastChosenExportPlugin = getDefaultExport(resource.getType().getTypeName());
-        }
-        FileFilter lastChosenFilter = null;
-
-        Map<FileFilter, PluginParameterBinding> exportplugins = new TreeMap<FileFilter, PluginParameterBinding>(
-                new Comparator<FileFilter>() {
-
-                    public int compare(FileFilter f1, FileFilter f2) {
-                        return f1.getDescription().toLowerCase().compareTo(f2.getDescription().toLowerCase());
-                    }
-                });
-        Set<PluginParameterBinding> potentialExportPlugins = context.getPluginManager().getPluginsAcceptingInAnyOrder(
-                UIPluginContext.class, true, File.class, resource.getType().getTypeClass());
-
+    public void eRP1(Set<PluginParameterBinding> potentialExportPlugins, Map<FileFilter, PluginParameterBinding> exportplugins, String lastChosenExportPlugin, FileFilter lastChosenFilter){
         for (PluginParameterBinding binding : potentialExportPlugins) {
             if (binding.getPlugin().getAnnotation(UIExportPlugin.class) != null) {
                 String description = binding.getPlugin().getAnnotation(UIExportPlugin.class).description();
@@ -208,33 +192,10 @@ public class ProMResourceManager extends UpdateSignaller implements ResourceMana
                 }
             }
         }
-
-        // HV Start at location last file was exported.
-        JFileChooser fc = (lastExportedFile != null ? new JFileChooser(lastExportedFile) : new JFileChooser());
-        for (FileFilter filter : exportplugins.keySet()) {
-            fc.addChoosableFileFilter(filter);
-        }
-        fc.setAcceptAllFileFilterUsed(false);
-        if (lastChosenFilter != null) {
-            fc.setFileFilter(lastChosenFilter);
-        }
-        boolean flag = true;
-        while (flag) {
-            int returnVal = fc.showSaveDialog(context.getUI());
-
-            if ((returnVal == JFileChooser.APPROVE_OPTION) && (fc.getSelectedFile() != null)) {
-                File file = fc.getSelectedFile();
-                FileNameExtensionFilter selectedFilter = (FileNameExtensionFilter) fc.getFileFilter();
-                if (selectedFilter == null) {
-                    selectedFilter = (FileNameExtensionFilter) exportplugins.keySet().iterator().next();
-                }
-
-                String postfix = "." + selectedFilter.getExtensions()[0];
-                if (!file.getAbsolutePath().endsWith(postfix)) {
-                    String name = file.getAbsolutePath() + postfix;
-                    file = metodoManutenzione1(name);
-                }
-                if (!file.createNewFile()) {
+    }
+    
+    public boolean eRP2(File file, boolean flag){
+        if (!file.createNewFile()) {
                     int ow = JOptionPane.showConfirmDialog(context.getUI(),
                             "Are you sure you want to overwrite " + file.getName(), "Confirm overwrite",
                             JOptionPane.YES_NO_OPTION);
@@ -244,7 +205,11 @@ public class ProMResourceManager extends UpdateSignaller implements ResourceMana
                         flag = false;
                     }
                 }
-                if (flag) {
+        return flag;
+    }
+    
+    public boolean eRP3(Resource resource, boolean flag, File file, FileNameExtensionFilter selectedFilter, Map<FileFilter, PluginParameterBinding> exportplugins){
+        if (flag) {
                     // HV Remember last file exported (and imported if not initialized yet).
                     lastExportedFile = file.getParentFile();
                     preferences.put(LASTEXPORTFILE, lastExportedFile.getAbsolutePath());
@@ -280,10 +245,70 @@ public class ProMResourceManager extends UpdateSignaller implements ResourceMana
                     }
                     return true;
                 }
+        return false;
+    }
+    
+    public boolean eRP4(Resource resource, boolean flag, JFileChooser fc, Map<FileFilter, PluginParameterBinding> exportplugins){
+         while (flag) {
+            int returnVal = fc.showSaveDialog(context.getUI());
+            
+            if ((returnVal == JFileChooser.APPROVE_OPTION) && (fc.getSelectedFile() != null)) {
+                File file = fc.getSelectedFile();
+                FileNameExtensionFilter selectedFilter = (FileNameExtensionFilter) fc.getFileFilter();
+                if (selectedFilter == null) {
+                    selectedFilter = (FileNameExtensionFilter) exportplugins.keySet().iterator().next();
+                }
+
+                String postfix = "." + selectedFilter.getExtensions()[0];
+                if (!file.getAbsolutePath().endsWith(postfix)) {
+                    String name = file.getAbsolutePath() + postfix;
+                    file = metodoManutenzione1(name);
+                }
+                flag = eRP2(file, flag);
+                if(eRP3(resource,flag, file, selectedFilter, exportplugins)) return true;
+                
 
                 return false;
             }
         }
+         return false;
+    }
+    
+    public boolean exportResource(Resource resource) throws IOException {
+        assert (resource instanceof ProMResource<?>);
+
+        String lastChosenExportPlugin = preferences.get(FAVORITEEXPORT + resource.getType().getTypeName(), "");
+        if (lastChosenExportPlugin.isEmpty()) {
+            // HV: No favorite set yet by user. Use reasonable default values for known types.
+            lastChosenExportPlugin = getDefaultExport(resource.getType().getTypeName());
+        }
+        FileFilter lastChosenFilter = null;
+
+        Map<FileFilter, PluginParameterBinding> exportplugins = new TreeMap<FileFilter, PluginParameterBinding>(
+                new Comparator<FileFilter>() {
+
+                    public int compare(FileFilter f1, FileFilter f2) {
+                        return f1.getDescription().toLowerCase().compareTo(f2.getDescription().toLowerCase());
+                    }
+                });
+        Set<PluginParameterBinding> potentialExportPlugins = context.getPluginManager().getPluginsAcceptingInAnyOrder(
+                UIPluginContext.class, true, File.class, resource.getType().getTypeClass());
+        eRP1(potentialExportPlugins, exportplugins, lastChosenExportPlugin, lastChosenFilter);
+        
+
+        // HV Start at location last file was exported.
+        JFileChooser fc = (lastExportedFile != null ? new JFileChooser(lastExportedFile) : new JFileChooser());
+        for (FileFilter filter : exportplugins.keySet()) {
+            fc.addChoosableFileFilter(filter);
+        }
+        fc.setAcceptAllFileFilterUsed(false);
+        if (lastChosenFilter != null) {
+            fc.setFileFilter(lastChosenFilter);
+        }
+        boolean flag = true;
+        if(eRP4(resource, flag, fc, exportplugins)) return true; else return false;
+       
+       
     }
 
     public java.util.List<ProMResource<?>> getAllResources() {
@@ -487,34 +512,9 @@ public class ProMResourceManager extends UpdateSignaller implements ResourceMana
         }
         return true;
     }
-
-    /*
-     * This method should be called from the EDT.
-     */
-    private synchronized boolean importResourceInEDT(PluginParameterBinding binding, final File... files) {
-        if (!EventQueue.isDispatchThread()) {
-            System.err.println("Method should only be called from EDT");
-            return false;
-        }
-        synchronized (importPluginAdded) {
-            if (importPluginAdded) {
-                buildImportPlugins();
-                importPluginAdded = false;
-            }
-        }
-
-        // HV Remember the location of the last file imported (and exported if not initialized yet).
-        lastImportedFile = files[0].getParentFile();
-        preferences.put(LASTIMPORTFILE, lastImportedFile.getAbsolutePath());
-        if (lastExportedFile == null) {
-            lastExportedFile = lastImportedFile;
-            preferences.put(LASTEXPORTFILE, lastExportedFile.getAbsolutePath());
-        }
-
-        if (binding == null) {
-            // user chose the "all files" option
-            Map<String, PluginParameterBinding> bindings = new HashMap<String, PluginParameterBinding>();
-            for (FileFilter filter : importplugins.keySet()) {
+    
+    private void iRIEDTP1(Map<String, PluginParameterBinding> bindings, File... files){
+        for (FileFilter filter : importplugins.keySet()) {
                 // HV: Only show plug-ins that can handle all files, as all files will be imported by it.
                 boolean ok = true;
                 for (File file : files) {
@@ -526,13 +526,57 @@ public class ProMResourceManager extends UpdateSignaller implements ResourceMana
                     bindings.put(filter.getDescription(), importplugins.get(filter));
                 }
             }
-            if (bindings.size() == 0) {
+    }
+    
+    private void iRIEDTP2(Map<String, PluginParameterBinding> bindings){
+        if (bindings.size() == 0) {
                 // 	TODO: No plugins available based on filetype
                 // 	show all plugins
                 for (FileFilter filter : importplugins.keySet()) {
                     bindings.put(filter.getDescription(), importplugins.get(filter));
                 }
             }
+    }
+    
+    private void iRIEDTP3(){
+        if (importPluginAdded) {
+                buildImportPlugins();
+                importPluginAdded = false;
+            }
+    }
+    
+    private void iRIEDTP4(){
+        if (lastExportedFile == null) {
+            lastExportedFile = lastImportedFile;
+            preferences.put(LASTEXPORTFILE, lastExportedFile.getAbsolutePath());
+        }
+    }
+
+    /*
+     * This method should be called from the EDT.
+     */
+    private synchronized boolean importResourceInEDT(PluginParameterBinding binding, final File... files) {
+        if (!EventQueue.isDispatchThread()) {
+            System.err.println("Method should only be called from EDT");
+            return false;
+        }
+        synchronized (importPluginAdded) {
+            iRIEDTP3();
+            
+        }
+
+        // HV Remember the location of the last file imported (and exported if not initialized yet).
+        lastImportedFile = files[0].getParentFile();
+        preferences.put(LASTIMPORTFILE, lastImportedFile.getAbsolutePath());
+        iRIEDTP4();
+        
+
+        if (binding == null) {
+            // user chose the "all files" option
+            Map<String, PluginParameterBinding> bindings = new HashMap<String, PluginParameterBinding>();
+            iRIEDTP1(files, bindings);
+            iRIEDTP2(bindings);
+            
             if (bindings.size() == 0) {
                 /*
                  * HV: This method does run in the EDT. 
