@@ -90,22 +90,9 @@ public class WeightEstimator
    				throw new Exception("Unknown Estimation Strategy !!");
    		}
 	}
-  
-	public void addTraceContribution(IntArrayList trace)
-	{
-		this.computationStarted = true;
-    
-		IntOpenHashSet visitedTasks = new IntOpenHashSet();
-
-		int traceSize = trace.size();
-                IntOpenHashSet visitedFollowers = new IntOpenHashSet();
-		for (int i = 0; i < traceSize; i++)
-		{
-			int gap = 0;
-			double power = 1.0D;
-			int task1 = trace.get(i);
-			boolean horizonReached = false;
-			if (this.estimationStrategy == 2) {
+        
+        public boolean aTCP1(IntOpenHashSet visitedTasks, int task1, boolean horizonReached){
+            if (this.estimationStrategy == 2) {
 				if (!visitedTasks.contains(task1))
 				{
 					visitedTasks.add(task1);
@@ -116,8 +103,11 @@ public class WeightEstimator
 					horizonReached = true;
 				}
 			}
-
-			for (int j = i + 1; (!horizonReached) && ((this.maxGap < 0) || (gap <= this.maxGap)) && (j < traceSize); j++)
+            return horizonReached;
+        }
+        
+        public void aTCP2(int i, double power, boolean horizonReached, int gap, IntArrayList trace, int traceSize, int task1, IntOpenHashSet visitedFollowers){
+            for (int j = i + 1; (!horizonReached) && ((this.maxGap < 0) || (gap <= this.maxGap)) && (j < traceSize); j++)
 			{
 				int task2 = trace.get(j);
         
@@ -138,8 +128,34 @@ public class WeightEstimator
 				}
 				gap++;
 			}
+        }
+  
+	public void addTraceContribution(IntArrayList trace)
+	{
+		this.computationStarted = true;
+    
+		IntOpenHashSet visitedTasks = new IntOpenHashSet();
+
+		int traceSize = trace.size();
+                IntOpenHashSet visitedFollowers = new IntOpenHashSet();
+		for (int i = 0; i < traceSize; i++)
+		{
+			int gap = 0;
+			double power = 1.0D;
+			int task1 = trace.get(i);
+			boolean horizonReached = false;
+                        horizonReached = aTCP1(visitedTasks, task1, horizonReached);
+			
+                        aTCP2(i, power, horizonReached, gap, trace, traceSize, task1, visitedFollowers);    
+			
 		}
 	}
+        
+        public void nBRM(){
+            if (NORMALIZE_BY_ROW_MAX) {
+			normalizeByRowMax();
+		}
+        }
   
 	public void computeWeigths()
 	{
@@ -183,9 +199,7 @@ public class WeightEstimator
 				this.depMatrix[i][j] = (numerator / denominator);
 			}
 		}
-		if (NORMALIZE_BY_ROW_MAX) {
-			normalizeByRowMax();
-		}
+                nBRM();
 	}
   
 	public double[][] getDependencyMatrix()
@@ -265,26 +279,35 @@ public class WeightEstimator
 			e.printStackTrace();
 		}
 	}
+        
+        public void sESC1(){
+            if ((this.countMatrix == null) || (this.countMatrix.length != this.taskNr)) {
+    				this.countMatrix = new double[this.taskNr][this.taskNr];
+    			}
+        }
   
+        public void sESC2(){
+            if ((this.traceFreq == null) || (this.traceFreq.length != this.taskNr)) {
+    				this.traceFreq = new int[this.taskNr];
+    			}
+        }
+        
 	public void setEstimationStrategy(int estimationStrategy)
 		throws Exception
 	{
+            
 		if (this.computationStarted) {
 			throw new Exception("Weigth Evaluation already started!!");
 		}
 		switch (estimationStrategy)
     	{
     		case 1: 
-    			if ((this.countMatrix == null) || (this.countMatrix.length != this.taskNr)) {
-    				this.countMatrix = new double[this.taskNr][this.taskNr];
-    			}
+                        sESC1();
     			break;
     		case 0: 
     			break;
     		case 2: 
-    			if ((this.traceFreq == null) || (this.traceFreq.length != this.taskNr)) {
-    				this.traceFreq = new int[this.taskNr];
-    			}
+                        sESC2();
     			break;
     		default: 
     			throw new Exception("Unknown Estimation Strategy !!");

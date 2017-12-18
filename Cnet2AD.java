@@ -134,6 +134,20 @@ public class Cnet2AD {
 
         return graph;
     }
+    
+    public void cN(Iterator<Gateway> g, BPMNNode node, ADnode n){
+        while(g.hasNext()){
+                Gateway gateway = g.next();
+
+                if(gateway.getLabel().equals(node.getLabel())){
+                    if(gateway.getGatewayType() == Gateway.GatewayType.PARALLEL)
+                        n.fork();
+                    else n.branch();
+
+                    break;
+                }
+            }
+    }
 
     private void computeNodes(ADgraph graph){
         for(BPMNNode node:this.model.getNodes()){
@@ -154,17 +168,8 @@ public class Cnet2AD {
             // Controllo se si tratta di un nodo speciale
             Collection<Gateway> gateways = this.model.getGateways();
             Iterator<Gateway> g = gateways.iterator();
-            while(g.hasNext()){
-                Gateway gateway = g.next();
-
-                if(gateway.getLabel().equals(node.getLabel())){
-                    if(gateway.getGatewayType() == Gateway.GatewayType.PARALLEL)
-                        n.fork();
-                    else n.branch();
-
-                    break;
-                }
-            }
+            cN(g, node, n);
+            
 
             // Siccome non posso esmainare esattamente se � un fork o un join
             // verifico, se ho in output un solo arco, � un join
@@ -190,6 +195,12 @@ public class Cnet2AD {
                     flow.getSource().getLabel() + " -> " + flow.getTarget().getLabel()
             );
         }
+    }
+    
+    public void fOEP1(ArrayList<ADedge> edges, ADnode forkNode){
+        for(ADedge e: edges){
+                e.begin(forkNode);
+            }
     }
 
     private void fixOutcomingEdges(ADgraph graph){
@@ -218,10 +229,9 @@ public class Cnet2AD {
             ADnode forkNode = new ADnode("Fork" + node.name);
             forkNode.fork();
             addAtTheEnd.add(forkNode);
-
-            for(ADedge e: edges){
-                e.begin(forkNode);
-            }
+            
+            fOEP1(edges, forkNode);
+            
             graph.add(new ADedge(node, forkNode));
         }
 
